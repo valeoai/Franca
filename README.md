@@ -89,6 +89,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">75.7%</td>
       <td align="center">39.1%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21k.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21k_rasa.pth">RASA head</a></td>
     </tr>
     <tr>
       <td>ViT-L/14</td>
@@ -100,6 +101,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">73.5%</td>
       <td align="center">41.3%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_In21k.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_In21k_rasa.pth">RASA head</a></td>
     </tr>
     <tr>
       <td>ViT-L/14</td>
@@ -111,6 +113,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">73.5%</td>
       <td align="center">41.4%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_Laion600M.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_Laion600M_rasa.pth">RASA head</a></td>
     </tr>
     <tr>
       <td>ViT-g/14</td>
@@ -122,6 +125,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">71.7%</td>
       <td align="center">40.2%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ac">part 3</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21K_rasa.pth">RASA head</a></td>
     </tr>
     <tr>
       <td>ViT-g/14</td>
@@ -133,6 +137,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">76.7%</td>
       <td align="center">42.4%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ac">part 3</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_Laion600M_rasa.pth">RASA head</a></td>
     </tr>
   </tbody>
 </table>
@@ -170,7 +175,7 @@ pip install -e ".[franca]"
 pip install -e ".[dev]"
 ```
 
-We recommend install torch seperately to match your specific config. Simarly, Franca relies on xFormers / cuML and RASA relies on faiss-gpu, which we also recommend installing on your side.
+We recommend install torch separately to match your specific config. Similarly, Franca relies on xFormers / cuML and RASA relies on faiss-gpu, which we also recommend installing on your side.
 
 Otherwise you can use the following commands:
 
