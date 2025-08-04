@@ -168,12 +168,12 @@ franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='DINOV
 ## Installation
 
 ```bash
-git clone https://github.com/valeoai/franca.git
+git clone https://github.com/valeoai/Franca.git
 cd franca
 # To install Franca and RASA you can use the following command
 pip install -e ".[franca]"
 # To install RASA seperately you can use the following command
-pip install -e ".[dev]"
+pip install -e . "
 ```
 
 We recommend install torch separately to match your specific config. Similarly, Franca relies on xFormers / cuML and RASA relies on faiss-gpu, which we also recommend installing on your side.

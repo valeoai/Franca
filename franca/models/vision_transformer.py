@@ -181,11 +181,6 @@ class DinoVisionTransformer(nn.Module):
         self.mask_token = nn.Parameter(torch.zeros(1, embed_dim))
 
         # RASA Head
-        assert n_pos_layers > 0, "n_pos_layers must be greater than 0"
-        assert pos_out_act_layer in [
-            "sigmoid",
-            "identity",
-        ], f"pos_out_act_layer must be one of ['sigmoid', 'identity'], got {pos_out_act_layer}"
         self.rasa_head = RASAHead(
             input_dim=embed_dim,
             n_pos_layers=n_pos_layers,

@@ -35,7 +35,7 @@ Z^{(t)}_s = Z^{(t-1)}_s - \left\langle Z_s, u_r \right\rangle u_r - \left\langle
 To install RASA seperately from Franca's repo,
 
 ```bash
-pip install -e ".[dev]"
+ pip install -e .
 ```
 
 ---

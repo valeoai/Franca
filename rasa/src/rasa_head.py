@@ -7,8 +7,19 @@ import torch.nn as nn
 class RASAHead(nn.Module):
     def __init__(self, input_dim, n_pos_layers, pos_out_dim=2, pos_out_act_layer="sigmoid"):
         super(RASAHead, self).__init__()
+
+        # Assertions for input validation
+        assert n_pos_layers > 0, "n_pos_layers must be greater than 0"
+        assert pos_out_act_layer in [
+            "sigmoid",
+            "tanh",
+            "identity",
+            None
+        ], f"pos_out_act_layer must be one of ['sigmoid', 'tanh', 'identity', None], got {pos_out_act_layer}"
+
         if pos_out_dim not in [1, 2]:
             raise ValueError("pos_out_dim must be either 1 or 2")
+
         self.pos_out_dim = pos_out_dim
         # Number of positional layers that are defined except the prediction layer
         self.n_pos_layers = n_pos_layers
