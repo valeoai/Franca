@@ -6,7 +6,7 @@
 
 ## Highlights
 
-- Works **post-hoc** on pretrained ViTs, like franca
+- Works **post-hoc** on pretrained ViTs, like Franca
 - **Iterative debiasing** using Gram-Schmidt orthogonal projections
 - Modular `RASAHead` integrates into any ViT pipeline
 - Boosts **semantic clustering** and **spatial entropy**
@@ -32,7 +32,11 @@ Z^{(t)}_s = Z^{(t-1)}_s - \left\langle Z_s, u_r \right\rangle u_r - \left\langle
 
 ## Installation
 
-Look at the [FRANCA Installation](https://github.com/valeoai/Franca?tab=readme-ov-file#installation). 
+To install RASA seperately from Franca's repo,
+
+```bash
+pip install -e ".[dev]"
+```
 
 ---
 
@@ -40,7 +44,7 @@ Look at the [FRANCA Installation](https://github.com/valeoai/Franca?tab=readme-o
 
 ### Configuration
 
-To set up training, create or adapt a configuration file.  
+To set up training, create or adapt a configuration file.
 An example is provided at:
 
 ```
@@ -49,7 +53,7 @@ An example is provided at:
 
 Modify parameters such as:
 - when `only_load_weights` is `True`:
-    - `train.checkpoint`: path to pretrained franca backbone 
+    - `train.checkpoint`: path to pretrained franca backbone
 - when `only_load_weights` is `False`:
     - `train.checkpoint`: path to checkpoint of RASA lightning module to continue training
     - In this case `start_pos_layers` can also be adapted to continue training of the rest of linear layers within the RASAhead.
@@ -57,7 +61,7 @@ Modify parameters such as:
 
 ### Dataset Preparation
 
-To prepare your dataset for training and evaluation, refer to [dataset_rasa.md](rasa/dataset_rasa.md).
+To prepare your dataset for training RASA and evaluation, refer to [dataset_rasa.md](rasa/dataset_rasa.md).
 
 ---
 
@@ -66,10 +70,6 @@ To prepare your dataset for training and evaluation, refer to [dataset_rasa.md](
 Once your config and dataset are ready, start training:
 
 ```bash
-# Set paths
-export PYTHONPATH="${PYTHONPATH}:./franca"
-export PYTHONPATH="${PYTHONPATH}:./rasa"
-
 cd rasa
 python experiments/train_rasa.py --config_path ./rasa/experiments/configs/rasa_franca.yml
 ```
@@ -112,9 +112,9 @@ Evaluation is handled inside the `RASA` LightningModule.
 
 ```
 rasa/
-├── src/                    
+├── src/
 │   ├── rasa.py             # LightningModule
-│   ├── transforms.py       # Data Pipeline Transformations 
+│   ├── transforms.py       # Data Pipeline Transformations
 │   └── rasa_head.py        # RASAHead torch Module
 ├── experiments/
 │   ├── train_rasa.py       # Training entrypoint

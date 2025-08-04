@@ -25,7 +25,7 @@ from franca.eval.setup import setup_and_build_model
 from franca.eval.utils import evaluate, extract_features
 from franca.utils.dtype import as_torch_dtype
 
-logger = logging.getLogger("dinov2")
+logger = logging.getLogger("franca")
 
 DEFAULT_MAX_ITER = 1_000
 C_POWER_RANGE = torch.linspace(-6, 5, 45)

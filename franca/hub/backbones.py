@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from franca.hub.utils import _TEMPDIR, extract_tar_file, load_state_dict_from_url
+from rasa.src.rasa_head import RASAHead
 
 _FRANCA_BASE_URL = "https://github.com/valeoai/Franca/releases/download/v1.0.0"
 _FRANCA_ViT_G_CHUNKS = [
@@ -20,6 +21,11 @@ _FRANCA_ViT_G_CHUNKS = [
 def _make_franca_model_name(arch_name: str, patch_size: int, pretraining_dataset: str) -> str:
     compact_arch_name = arch_name.replace("_", "")[:4]
     return f"franca_{compact_arch_name}{patch_size}_{pretraining_dataset}"
+
+
+def _make_rasa_model_name(arch_name: str, patch_size: int, pretraining_dataset: str) -> str:
+    compact_arch_name = arch_name.replace("_", "")[:4]
+    return f"franca_{compact_arch_name}{patch_size}_{pretraining_dataset}_rasa"
 
 
 @dataclass
@@ -35,6 +41,7 @@ class FrancaConfig:
     num_register_tokens: int = 0
     interpolate_antialias: bool = False
     interpolate_offset: float = 0.1
+    use_rasa_head: bool = False
 
 
 class Weights(Enum):
@@ -50,6 +57,7 @@ def _make_franca_model(
     pretrained: bool = True,
     weights: Union[Weights, str] = Weights.IN21K,
     local_state_dict: Optional[str | list[str]] = None,
+    RASA_local_state_dict: Optional[str | list[str]] = None,
     **kwargs,
 ) -> nn.Module:
     from ..models import build_model
@@ -72,7 +80,6 @@ def _make_franca_model(
                 "Please use IN21K weights or set `pretrained=False`."
             )
         if local_state_dict is not None:
-            # This is mainly for testing purposes
             if os.path.isdir(local_state_dict):
                 with tempfile.TemporaryDirectory(dir=_TEMPDIR) as tmpdirname:
                     outfile = extract_tar_file(local_state_dict, tmpdirname)
@@ -85,35 +92,63 @@ def _make_franca_model(
             else:
                 url = _FRANCA_BASE_URL + f"/{model_full_name}.pth"
             state_dict = load_state_dict_from_url(url, map_location="cpu", weights_only=True)
+
         state_dict: dict[str, Any] = state_dict["teacher"]
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
         state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-        msg = model.load_state_dict(state_dict, strict=False)
+
+        # Filter out rasa_head keys from the main state_dict if they exist
+        filtered_state_dict = {k: v for k, v in state_dict.items() if not k.startswith("rasa_head.")}
+
+        msg = model.load_state_dict(filtered_state_dict, strict=False)
 
         if len(msg.missing_keys) != 0:
-            raise ValueError(
-                f"Missing keys in the state_dict: {msg.missing_keys}. "
-                "Ensure that the model architecture matches the state_dict."
-            )
+            # Filter out rasa_head keys from missing keys check
+            non_rasa_missing = [k for k in msg.missing_keys if not k.startswith("rasa_head.")]
+            if len(non_rasa_missing) != 0:
+                raise ValueError(
+                    f"Missing keys in the state_dict: {non_rasa_missing}. "
+                    "Ensure that the model architecture matches the state_dict."
+                )
 
         for k in msg.unexpected_keys:
-            if k.startswith("dino_head.") or k.startswith("ibot_head."):
+            if k.startswith("dino_head.") or k.startswith("ibot_head.") or k.startswith("rasa_head."):
                 continue
             raise ValueError(
                 f"Unexpected key in the state_dict: {k}. Ensure that the model architecture matches the state_dict."
             )
 
     flat_blocks = []
-    for chunk in model.blocks:  # chunk is a BlockChunk (nn.ModuleList)
-        for blk in chunk:  # blk is either Identity() or a NestedTensorBlock
+    for chunk in model.blocks:
+        for blk in chunk:
             if not isinstance(blk, nn.Identity):
                 flat_blocks.append(blk)
-
-    # replace model.blocks with the flat list…
     model.blocks = nn.ModuleList(flat_blocks)
-    model.chunked_blocks = False  # so the forward logic uses the "not chunked" path
-
+    model.chunked_blocks = False
     assert len(model.blocks) == model.n_blocks, f"Expected {model.n_blocks} blocks, but got {len(model.blocks)} blocks."
+
+    if vit_config.use_rasa_head:
+        rasa_head = RASAHead(input_dim=model.embed_dim, n_pos_layers=9, pos_out_dim=2)
+
+        if RASA_local_state_dict is not None:
+            rasa_state_dict = torch.load(RASA_local_state_dict, map_location="cpu", weights_only=True)
+        else:
+            rasa_model_name = _make_rasa_model_name(arch_name, vit_config.patch_size, weights.value)
+            rasa_url = _FRANCA_BASE_URL + f"/{rasa_model_name}.pth"
+            rasa_state_dict = load_state_dict_from_url(rasa_url, map_location="cpu", weights_only=True)
+
+        # Load the RASA head state dict
+        msg = rasa_head.load_state_dict(rasa_state_dict)
+        if len(msg.missing_keys) != 0:
+            raise ValueError(
+                f"Missing keys in the RASA head state_dict: {msg.missing_keys}. "
+                "Ensure that the RASA head architecture matches the state_dict."
+            )
+
+        model.rasa_head = rasa_head
+
+    if not vit_config.use_rasa_head and hasattr(model, "rasa_head"):
+        del model.rasa_head
 
     return model
 

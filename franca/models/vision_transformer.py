@@ -18,6 +18,7 @@ from torch.nn.init import trunc_normal_
 from franca.layers import MemEffAttention, Mlp
 from franca.layers import NestedTensorBlock as Block
 from franca.layers import PatchEmbed, SwiGLUFFNFused
+from rasa.src.rasa_head import RASAHead
 
 logger = logging.getLogger("franca")
 
@@ -71,6 +72,8 @@ class DinoVisionTransformer(nn.Module):
         interpolate_antialias=False,
         interpolate_offset=0.1,
         use_rope=False,
+        n_pos_layers=9,
+        pos_out_act_layer="sigmoid",
     ):
         """
         Args:
@@ -177,6 +180,19 @@ class DinoVisionTransformer(nn.Module):
 
         self.mask_token = nn.Parameter(torch.zeros(1, embed_dim))
 
+        # RASA Head
+        assert n_pos_layers > 0, "n_pos_layers must be greater than 0"
+        assert pos_out_act_layer in [
+            "sigmoid",
+            "identity",
+        ], f"pos_out_act_layer must be one of ['sigmoid', 'identity'], got {pos_out_act_layer}"
+        self.rasa_head = RASAHead(
+            input_dim=embed_dim,
+            n_pos_layers=n_pos_layers,
+            pos_out_dim=2,
+            pos_out_act_layer=pos_out_act_layer,
+        )
+
         self.init_weights()
 
     def init_weights(self):
@@ -245,7 +261,7 @@ class DinoVisionTransformer(nn.Module):
 
         return x
 
-    def forward_features_list(self, x_list, masks_list):
+    def forward_features_list(self, x_list, masks_list, use_rasa_head=False):
         x = [self.prepare_tokens_with_masks(x, masks) for x, masks in zip(x_list, masks_list)]
         for blk in self.blocks:
             x = blk(x)
@@ -254,20 +270,28 @@ class DinoVisionTransformer(nn.Module):
         output = []
         for x, masks in zip(all_x, masks_list):
             x_norm = self.norm(x)
+            # Debias the patch tokens using the RASA head
+            x_norm_patchtoken = x_norm[:, self.num_register_tokens + 1 :]
+            if use_rasa_head:
+                # Debias the patch tokens using the RASA head
+                debiased_patch_tokens = self.rasa_head(x_norm_patchtoken, use_pos_pred=True, return_pos_info=False)
+            else:
+                debiased_patch_tokens = None
             output.append(
                 {
                     "x_norm_clstoken": x_norm[:, 0],
                     "x_norm_regtokens": x_norm[:, 1 : self.num_register_tokens + 1],
-                    "x_norm_patchtokens": x_norm[:, self.num_register_tokens + 1 :],
+                    "x_norm_patchtokens": x_norm_patchtoken,
+                    "patch_token_rasa": debiased_patch_tokens,
                     "x_prenorm": x,
                     "masks": masks,
                 }
             )
         return output
 
-    def forward_features(self, x, masks=None):
+    def forward_features(self, x, masks=None, use_rasa_head=False):
         if isinstance(x, list):
-            return self.forward_features_list(x, masks)
+            return self.forward_features_list(x, masks, use_rasa_head)
 
         x = self.prepare_tokens_with_masks(x, masks)
 
@@ -275,10 +299,18 @@ class DinoVisionTransformer(nn.Module):
             x = blk(x)
 
         x_norm = self.norm(x)
+        x_norm_patchtoken = x_norm[:, self.num_register_tokens + 1 :]
+        if use_rasa_head:
+            # Debias the patch tokens using the RASA head
+            debiased_patch_tokens = self.rasa_head(x_norm_patchtoken, use_pos_pred=True, return_pos_info=False)
+        else:
+            debiased_patch_tokens = None
+
         return {
             "x_norm_clstoken": x_norm[:, 0],
             "x_norm_regtokens": x_norm[:, 1 : self.num_register_tokens + 1],
-            "x_norm_patchtokens": x_norm[:, self.num_register_tokens + 1 :],
+            "x_norm_patchtokens": x_norm_patchtoken,
+            "patch_token_rasa": debiased_patch_tokens,
             "x_prenorm": x,
             "masks": masks,
         }

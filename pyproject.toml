@@ -26,6 +26,10 @@ dependencies = [
     "pillow==10.4.0",
     "scipy==1.14.0",
     "omegaconf==2.3.0",
+    "pytorch-lightning==2.4.0",
+    "webdataset==0.2.96",
+    "sacred==0.8.7",
+    "joblib==1.4.2",
 ]
 
 [project.optional-dependencies]
@@ -34,13 +38,7 @@ franca = [
     "torchdata==0.11.0",
     "fvcore@git+https://github.com/facebookresearch/fvcore@f3b07ea37daff5b774702708134f7b702e2dc83e",
 ]
-rasa = [
-    "pytorch-lightning==2.4.0",
-    "webdataset==0.2.96",
-    "sacred==0.8.7",
-    "joblib==1.4.2",
-    "neptune==1.13.0"
-]
+
 dev = [
     "flake8",
     "flake8-annotations",

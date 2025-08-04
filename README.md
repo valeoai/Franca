@@ -73,8 +73,6 @@ Franca is released as a research project to promote transparency, reproducibilit
       <th>Resolution</th>
       <th>ImageNet<br />k-NN</th>
       <th>ImageNet<br />linear</th>
-      <th>HummingBird<br />VOC</th>
-      <th>Linear Segm.<br />ADE20K</th>
       <th>download</th>
     </tr>
   </thead>
@@ -84,10 +82,8 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="left">86 M</td>
       <td align="left">In21K</td>
       <td align="center">518</td>
-      <td align="center">80.9%</td>
+      <td align="center">77.4%</td>
       <td align="center">82.0%</td>
-      <td align="center">75.7%</td>
-      <td align="center">39.1%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21k.pth">backbone only</a></td>
     </tr>
     <tr>
@@ -95,10 +91,8 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="left">300 M</td>
       <td align="left">In21K</td>
       <td align="center">224</td>
-      <td align="center">82.6%</td>
-      <td align="center">84.2%</td>
-      <td align="center">73.5%</td>
-      <td align="center">41.3%</td>
+      <td align="center">82.2%</td>
+      <td align="center">84.5%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_In21k.pth">backbone only</a></td>
     </tr>
     <tr>
@@ -106,10 +100,8 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="left">300 M</td>
       <td align="left">LAION-600M</td>
       <td align="center">224</td>
-      <td align="center">82.0%</td>
-      <td align="center">83.8%</td>
-      <td align="center">73.5%</td>
-      <td align="center">41.4%</td>
+      <td align="center">81.9%</td>
+      <td align="center">84.4%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_Laion600M.pth">backbone only</a></td>
     </tr>
     <tr>
@@ -119,32 +111,19 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">224</td>
       <td align="center">83.1%</td>
       <td align="center">85.9%</td>
-      <td align="center">71.7%</td>
-      <td align="center">40.2%</td>
-      <td>
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_aa">part 1</a>,
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ab">part 2</a>,
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ac">part 3</a>
-      </td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ac">part 3</a></td>
     </tr>
     <tr>
       <td>ViT-g/14</td>
       <td align="left">1,100 M</td>
       <td align="left">LAION-600M</td>
       <td align="center">224</td>
-      <td align="center">82.8%</td>
+      <td align="center">81.2%</td>
       <td align="center">85.0%</td>
-      <td align="center">76.7%</td>
-      <td align="center">42.4%</td>
-      <td>
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_aa">part 1</a>,
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ab">part 2</a>,
-        <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ac">part 3</a>
-      </td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ac">part 3</a></td>
     </tr>
   </tbody>
 </table>
-
 </div>
 
 ### Pretrained backbones (via PyTorch Hub)
@@ -155,33 +134,31 @@ Please follow the instructions [here](https://pytorch.org/get-started/locally/) 
 import torch
 
 # Franca -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14')
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14')
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14')
+franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', use_rasa_head=True)
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', use_rasa_head=True)
+franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', use_rasa_head=True)
 
 # Franca -- Laion600M
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION')
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION')
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION600m', use_rasa_head=True)
+franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION600m', use_rasa_head=True)
 
 # Dinov2 baseline -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='Dinov2_In21k')
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='Dinov2_In21k')
+franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=True)
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='DINOV2_IN21K', use_rasa_head=True)
 ```
 
 ## Installation
 
 ```bash
 git clone https://github.com/valeoai/franca.git
-cd Franca
-# To install Franca you can use the following command
-pip install -e ".[franca]"
-# To install RASA you can use the following command
-pip install -e ".[rasa]"
+cd franca
 # To install Franca and RASA you can use the following command
-pip install -e ".[franca,rasa]"
+pip install -e ".[franca]"
+# To install RASA seperately you can use the following command
+pip install -e ".[dev]"
 ```
 
-We recommend install torch separately to match your specific config. Similarly, Franca relies on xFormers / cuML and RASA relies on faiss-gpu, which we also recommend installing on your side.
+We recommend install torch seperately to match your specific config. Simarly, Franca relies on xFormers / cuML and RASA relies on faiss-gpu, which we also recommend installing on your side.
 
 Otherwise you can use the following commands:
 
@@ -189,24 +166,26 @@ Otherwise you can use the following commands:
 # Install franca with additional dependencies
 pip install -e ".[franca,torch,cuml,xformers]"
 # Install rasa with additional dependencies
-pip install -e ".[rasa,torch,faiss]"
+pip install -e ".[torch,faiss]"
 ```
 
 
 ## Inference code
 
-To load a Franca model directly using the checkpoint from [link](#comingsoon), use the example below:
+To load a Franca model directly using the checkpoint from [link](#coming soon), use the example below:
 
 ```python
 import torch
 from PIL import Image
 from torchvision import transforms
 from franca.hub.backbones import _make_franca_model
+from rasa.src.rasa_head import RASAHead
 
 # --- Step 1: Choose model config ---
 arch_name = "vit_large"
 img_size = 224
-ckpt_path = "<path to checkpoint>"
+ckpt_path = "<your path>/franca_vitl14_In21K.pth"
+rasa_ckpt_path = "<your path>/franca_vitl14_In21K_rasa.pth"
 
 # Define image transformation
 transform = transforms.Compose([
@@ -222,7 +201,10 @@ model = _make_franca_model(
     img_size=img_size,
     pretrained=True,
     local_state_dict=ckpt_path,
+    RASA_local_state_dict=rasa_ckpt_path,
+    use_rasa_head=True
 )
+
 
 # --- Step 3: Forward pass ---
 model.cuda()
@@ -231,15 +213,17 @@ model.eval()
 image = Image.open("assets/dog.jpg")
 x = transform(image).unsqueeze(0).cuda()
 
+
 with torch.no_grad():
-    feats = model.forward_features(x)
+    feats = model.forward_features(x, use_rasa_head=True)
     cls_token = feats["x_norm_clstoken"]
     patch_tokens = feats["x_norm_patchtokens"]
+    patch_tokens_debiased = feats["patch_token_rasa"]
 
 print("CLS token shape:", cls_token.shape)
 print("Patch token shape:", patch_tokens.shape)
+print("Patch token RASA shape:", patch_tokens_debiased.shape)
 ```
-
 
 
 ## Structure

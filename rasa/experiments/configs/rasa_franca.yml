@@ -1,11 +1,11 @@
 # exp1
-num_workers: 16
+num_workers: 32
 gpus: 1
-log_status: 'offline' # set to async to log to neptune, or offline for local development
+log_status: 'async' # set to async to log to neptune, or offline for local development
 tags: "RASA"
 
 data:
-  data_dir: "<PATH TO THE DATA DIRECTORY FOR TRAINING>"
+  data_dir: "<PATH TO PASCAL VOC>"
   dataset_name: "voc" # possible options are "coco", "imagenet100", "imagenet1k", "voc"
   size_crops: 518 
   jitter_strength: 0.4
@@ -30,12 +30,12 @@ train:
   save_checkpoint_every_n_epochs: 1
   pos_out_act_layer: 'sigmoid'
   start_pos_layers: 0
-  end_pos_layers: 22
+  end_pos_layers: 9
   checkpoint_dir: "<THE DIRECTORY WHERE TO SAVE THE CHECKPOINTS DURING TRAINING>"
   continue: null # "<PYTORCH LIGHTNING CHECKPOINT TO LOAD>" only if you want to resume training
   hub_repo_or_dir: "<SPECIFY THE NAME OF THE BACKBONE TO LOAD>" # i.e., "valeoai/Franca" or "facebookresearch/dinov2"
   model_name: "<SPECIFY THE NAME OF THE BACKBONE TO LOAD>" # e.g., "franca_vitb14", "dinov2_vitb14", ...
-  weights: null # "<NAME OF WEIGHTS TO LOAD>" for backbone, options: null, "LAION600m", "DINOV2_IN21K
+  weights: null # "<NAME OF WEIGHTS TO LOAD>" for backbone, options: null, "LAION600m", "DINOV2_IN21K"
   grad_norm_clipping: null # null means DO NOT SET, it is used to clip the gradients
   trainable_blocks: null
 
@@ -43,5 +43,5 @@ val:
   val_downsample_masks: True
   val_batch_size: 32
   val_iters: 10
-  val_iters_u_segm: 3 
+  val_iters_u_segm: 5 
   num_clusters_kmeans_miou: [500, 300, 21] 

@@ -53,17 +53,17 @@ Use the code below to get started with the model.
 import torch
 
 # Franca -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14')
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14')
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14')
+franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', use_rasa_head=True)
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', use_rasa_head=True)
+franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', use_rasa_head=True)
 
 # Franca -- Laion600M
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION600m')
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION600m')
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION600m', use_rasa_head=True)
+franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION600m', use_rasa_head=True)
 
 # Dinov2 baseline -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='Dinov2_In21k')
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='Dinov2_In21k')
+franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=True)
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='DINOV2_IN21K', use_rasa_head=True)
 ```
 
 
@@ -78,11 +78,13 @@ import torch
 from PIL import Image
 from torchvision import transforms
 from franca.hub.backbones import _make_franca_model
+from rasa.src.rasa_head import RASAHead
 
 # --- Step 1: Choose model config ---
 arch_name = "vit_large"
 img_size = 224
-ckpt_path = "<path to checkpoint>"
+ckpt_path = "<your path>/franca_vitl14_In21K.pth"
+rasa_ckpt_path = "<your path>/franca_vitl14_In21K_rasa.pth"
 
 # Define image transformation
 transform = transforms.Compose([
@@ -98,7 +100,10 @@ model = _make_franca_model(
     img_size=img_size,
     pretrained=True,
     local_state_dict=ckpt_path,
+    RASA_local_state_dict=rasa_ckpt_path,
+    use_rasa_head=True
 )
+
 
 # --- Step 3: Forward pass ---
 model.cuda()
@@ -108,10 +113,12 @@ image = Image.open("assets/dog.jpg")
 x = transform(image).unsqueeze(0).cuda()
 
 with torch.no_grad():
-    feats = model.forward_features(x)
+    feats = model.forward_features(x, use_rasa_head=True)
     cls_token = feats["x_norm_clstoken"]
     patch_tokens = feats["x_norm_patchtokens"]
+    patch_tokens_debiased = feats["patch_token_rasa"]
 
 print("CLS token shape:", cls_token.shape)
 print("Patch token shape:", patch_tokens.shape)
+print("Patch token RASA shape:", patch_tokens_debiased.shape)
 ```

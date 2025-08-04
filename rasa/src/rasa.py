@@ -7,14 +7,12 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
-from experiments.utils import PredsmIoUKmeans, cosine_scheduler
-from omegaconf import OmegaConf
 from pytorch_lightning.core.optimizer import LightningOptimizer
 from torch import nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.optim.optimizer import Optimizer
 
-from franca.models import build_model_from_cfg
+from rasa.experiments.utils import PredsmIoUKmeans, cosine_scheduler
 from rasa.src.rasa_head import RASAHead
 
 
@@ -33,9 +31,10 @@ class RASA(pl.LightningModule):
         val_iters: int,
         val_iters_u_segm: int,
         num_classes: int,
-        conf_path: str,
-        default_conf_path: str,
+        hub_repo_or_dir: str,
+        model_name: str,
         num_clusters_kmeans: List[int],
+        weights: Optional[str] = None,
         val_downsample_masks: bool = True,
         exclude_norm_bias: bool = True,
         optimizer: str = "adam",
@@ -66,8 +65,10 @@ class RASA(pl.LightningModule):
         self.use_u_segm_eval = val_iters_u_segm is None or val_iters_u_segm > 0
         self.pos_out_act_layer = pos_out_act_layer
         self.n_pos_layers = n_pos_layers
-        self.conf_path = conf_path
-        self.default_conf_path = default_conf_path
+        # Parameters for loading the backbone
+        self.hub_repo_or_dir = hub_repo_or_dir
+        self.model_name = model_name
+        self.weights = weights
 
         # compute iters per epoch
         global_batch_size = self.num_nodes * self.gpus * self.batch_size if self.gpus > 0 else self.batch_size
@@ -82,10 +83,10 @@ class RASA(pl.LightningModule):
         )
 
         # Load the backbone
-        default_config = OmegaConf.load(self.default_conf_path)
-        loaded_config = OmegaConf.load(self.conf_path)
-        config = OmegaConf.merge(default_config, loaded_config)
-        self.backbone, _ = build_model_from_cfg(config, only_teacher=True)
+        if self.weights is None:
+            self.backbone = torch.hub.load(self.hub_repo_or_dir, self.model_name)
+        else:
+            self.backbone = torch.hub.load(self.hub_repo_or_dir, self.model_name, weights=self.weights)
 
         # Setup the RASA head
         self.head = RASAHead(

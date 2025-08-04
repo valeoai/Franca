@@ -4,7 +4,6 @@ from datetime import datetime
 import click
 import pandas as pd
 import sacred
-import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import NeptuneLogger
@@ -30,11 +29,7 @@ from rasa.src.rasa import RASA
 from rasa.src.transforms import GaussianBlur
 
 ex = sacred.experiment.Experiment()
-api_key = (
-    "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5l"
-    "cHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIs"
-    "ImFwaV9rZXkiOiJlZmZmMTY4Mi0xOTA3LTQ4NzktOWRhZC0zYWY3MTFkNjdhNmMifQ=="
-)
+api_key = "<enter your api key>"
 
 
 @click.command()
@@ -59,11 +54,6 @@ def entry_script(config_path, seed, lr_heads, checkpoint_dir, data_dir):
         config_updates["train.checkpoint_dir"] = checkpoint_dir
     if data_dir is not None:
         config_updates["data.data_dir"] = data_dir
-    # Set default config path if not provided
-    if config_updates.get("train.default_conf_path", None) is None:
-        config_updates["train.default_conf_path"] = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), "backbone_default_config.yaml"
-        )
 
     ex.run(config_updates=config_updates, options={"--name": ex_name})
 
@@ -92,7 +82,7 @@ def finetune_with_spatial_loss(_config, _run):  # finetune_pos_disentanglement
     val_config = _config["val"]
     seed_everything(_config["seed"])
 
-    py_light_chkpt = train_config["checkpoint"] if not train_config["only_load_weights"] else None
+    py_light_chkpt = train_config["continue"]
     prev_model = None
     for i in range(train_config["start_pos_layers"], train_config["end_pos_layers"]):
         data_module, num_images = get_training_data(data_config, train_config, val_config, _config["num_workers"])
@@ -118,24 +108,13 @@ def finetune_with_spatial_loss(_config, _run):  # finetune_pos_disentanglement
             final_lr=train_config["final_lr"],
             weight_decay=train_config["weight_decay"],
             grad_norm_clipping=train_config.get("grad_norm_clipping", None),
-            conf_path=train_config["conf_path"],
-            default_conf_path=train_config["default_conf_path"],
+            hub_repo_or_dir=train_config.get("hub_repo_or_dir", None),
+            model_name=train_config.get("model_name", None),
+            weights=train_config.get("weights", None),
         )
 
-        # Optionally load weights
-        if prev_model is None:
-            if train_config["checkpoint"] is not None and train_config["only_load_weights"]:
-                print(f"Loading initial weights from checkpoint at pos layer {i} from {train_config['checkpoint']}")
-                state_dict = torch.load(train_config["checkpoint"], map_location="cpu")
-
-                state_dict = state_dict["teacher"]
-                state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
-                state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-                msg = model.backbone.load_state_dict(state_dict, strict=False)
-                print("Loaded Initial Backbone Weights:", msg)
-            elif train_config["checkpoint"] is None:
-                raise ValueError("Checkpoint path not provided")
-        else:
+        # Create the next model's head
+        if prev_model is not None:
             print(f"Loading weights from previous model for pos layer {i}.")
             # Setup the new model with the previous model's pre_pos_layers and the pos_pred layer as the
             # new pre_pos_layers and create a newly initialized pos_pred layer

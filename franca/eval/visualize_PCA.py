@@ -9,7 +9,22 @@ from sklearn.decomposition import PCA
 from torchvision import transforms
 from tqdm import tqdm
 
-model = torch.hub.load('valeoai/Franca', 'franca_vitb14')
+from franca.hub.backbones import _make_franca_model
+
+arch_name = "vit_base"
+img_size = 518
+ckpt_path = "/home/svenka20/iveco/shashank/logfiles/franca_release_weights/franca_vitb14_In21K.pth"
+rasa_ckpt_path = "/home/svenka20/iveco/shashank/logfiles/franca_release_weights/franca_vitb14_In21K_rasa.pth"
+
+model = _make_franca_model(
+    arch_name=arch_name,
+    img_size=img_size,
+    pretrained=True,
+    local_state_dict=ckpt_path,
+    RASA_local_state_dict=rasa_ckpt_path,
+    use_rasa_head=True,
+)
+
 model.cuda()
 model.eval()
 
@@ -18,7 +33,7 @@ patch_size = model.patch_size
 feat_dim = 1024  # for vitl14
 
 # Calculate dimensions that are multiples of patch_size
-image_size = 224 * 2  # 448, which is cleanly divisible by patch_size (14)
+image_size = 224 * 2
 patch_h, patch_w = image_size // patch_size, image_size // patch_size
 
 # Define transforms
@@ -60,46 +75,24 @@ def process_image(img_path, output_pca_dir, output_frames_dir, sequence_name):
         img_t = transform_pca(img).unsqueeze(0).cuda()
 
         with torch.no_grad():
-            features_dict = model.forward_features(img_t)
-            features = features_dict["x_norm_patchtokens"]
-            total_features = features.squeeze(0).cpu().numpy()  # (h*w, feat_dim)
+            features_dict = model.forward_features(img_t, use_rasa_head=True)
+            features = features_dict["patch_token_rasa"]
+            total_features = features.squeeze(0).detach().cpu().numpy()  # (h*w, feat_dim)
 
-        # PCA step 1
+        # Simple PCA on all features
         pca = PCA(n_components=3)
         pca_features = pca.fit_transform(total_features)
 
-        # Min-max scaling
-        pca_features[:, 0] = (pca_features[:, 0] - pca_features[:, 0].min()) / (
-            pca_features[:, 0].max() - pca_features[:, 0].min()
-        )
+        # Normalize each component to [0, 1]
+        for i in range(3):
+            min_val = pca_features[:, i].min()
+            max_val = pca_features[:, i].max()
+            if max_val > min_val:  # Prevent division by zero
+                pca_features[:, i] = (pca_features[:, i] - min_val) / (max_val - min_val)
 
-        # Threshold background
-        pca_features_bg = pca_features[:, 0] > 0.35
-        pca_features_fg = ~pca_features_bg
+        pca_features_rgb = pca_features.reshape(patch_h, patch_w, 3)
 
-        # PCA step 2 (foreground)
-        if np.sum(pca_features_fg) > 0:  # Check if there are foreground features
-            pca.fit(total_features[pca_features_fg])
-            pca_features_left = pca.transform(total_features[pca_features_fg])
-
-            # Normalize new features
-            for i in range(3):
-                min_val = pca_features_left[:, i].min()
-                max_val = pca_features_left[:, i].max()
-                if max_val > min_val:  # Prevent division by zero
-                    pca_features_left[:, i] = (pca_features_left[:, i] - min_val) / (max_val - min_val)
-
-            # Merge back
-            pca_features_rgb = pca_features.copy()
-            pca_features_rgb[pca_features_bg] = 0
-            pca_features_rgb[pca_features_fg] = pca_features_left
-        else:
-            # If no foreground is detected, use the original PCA features
-            pca_features_rgb = pca_features
-
-        pca_features_rgb = pca_features_rgb.reshape(patch_h, patch_w, 3)
-
-        # 1. Interpolate to original image size
+        # Interpolate to original image size
         pca_features_rgb_tensor = torch.from_numpy(pca_features_rgb).permute(2, 0, 1).unsqueeze(0)  # (1, 3, patch_h, patch_w)
         pca_features_rgb_upsampled = F.interpolate(
             pca_features_rgb_tensor,
@@ -111,20 +104,7 @@ def process_image(img_path, output_pca_dir, output_frames_dir, sequence_name):
             pca_features_rgb_upsampled.squeeze(0).permute(1, 2, 0).numpy()
         )  # (image_size, image_size, 3)
 
-        # 2. Background mask upsample
-        pca_features_bg_mask = pca_features_bg.reshape(patch_h, patch_w).astype(np.float32)
-        pca_features_bg_mask_tensor = (
-            torch.from_numpy(pca_features_bg_mask).unsqueeze(0).unsqueeze(0)
-        )  # (1, 1, patch_h, patch_w)
-        pca_features_bg_mask_upsampled = F.interpolate(
-            pca_features_bg_mask_tensor, size=(image_size, image_size), mode="nearest"
-        )
-        pca_features_bg_mask_upsampled = pca_features_bg_mask_upsampled.squeeze(0).squeeze(0).numpy() > 0.5  # binary mask
-
-        # 3. Apply mask
-        pca_features_rgb_upsampled[pca_features_bg_mask_upsampled] = 0  # black background
-
-        # 4. Save
+        # Save
         final_image = (pca_features_rgb_upsampled * 255).astype(np.uint8)
         final_image_pil = Image.fromarray(final_image)
 

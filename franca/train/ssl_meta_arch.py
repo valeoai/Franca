@@ -355,8 +355,6 @@ class SSLMetaArch(nn.Module):
         else:
             outputs_list = _attn_bias.split(self.student.dino_head(cat_inputs))
 
-
-
         if self.cfg.dino.MRL:
             student_local_cls_tokens_after_head = []
             student_global_cls_tokens_after_head = []
@@ -404,8 +402,6 @@ class SSLMetaArch(nn.Module):
                 * loss_scales
                 / (n_global_crops_loss_terms + n_local_crops_loss_terms)
             )
-
-
 
             loss_dict["dino_global_crops_loss"] = dino_global_crops_loss
 

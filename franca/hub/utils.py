@@ -75,7 +75,7 @@ def load_state_dict_from_url(
     cached_file = os.path.join(model_dir, filename)
     if not os.path.exists(cached_file):
         for _url in url:
-            sys.stdout.write(f'Downloading: "{_url}" to {model_parts_dir}\n')
+            sys.stdout.write(f'Downloading: "{_url}" to {cached_file} parts\n')
             _parts = urlparse(_url)
             _filename = os.path.basename(_parts.path)
             _cached_file = os.path.join(model_parts_dir, _filename)

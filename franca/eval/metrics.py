@@ -11,7 +11,7 @@ from torchmetrics import Metric, MetricCollection
 from torchmetrics.classification import MulticlassAccuracy
 from torchmetrics.utilities.data import dim_zero_cat, select_topk
 
-logger = logging.getLogger("dinov2")
+logger = logging.getLogger("franca")
 
 
 class MetricType(Enum):

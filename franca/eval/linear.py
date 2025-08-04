@@ -27,7 +27,7 @@ from franca.eval.setup import setup_and_build_model
 from franca.eval.utils import ModelWithIntermediateLayers, evaluate
 from franca.logging import MetricLogger
 
-logger = logging.getLogger("dinov2")
+logger = logging.getLogger("franca")
 
 
 def get_args_parser(

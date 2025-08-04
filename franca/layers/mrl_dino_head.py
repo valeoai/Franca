@@ -52,7 +52,7 @@ class MRLDINOHead(nn.Module):
         self.nesting_list = [hidden_dim // 2, hidden_dim] if nesting_list is None else nesting_list
 
         # Create matryoshka projection layers before MLP
-        self.matryoshka_projections = nn.ModuleList([nn.Linear(in_dim, dim, bias=mlp_bias) for dim in self.nesting_list])
+        self.matryoshka_projections = nn.ModuleList([nn.Linear(dim, dim, bias=mlp_bias) for dim in self.nesting_list])
 
         # Build MLPs for each nesting level
         self.mlps = nn.ModuleList(
@@ -100,7 +100,7 @@ class MRLDINOHead(nn.Module):
 
         for i, dim in enumerate(self.nesting_list):
             # Project input to the appropriate nesting dimension
-            h = self.matryoshka_projections[i](x)
+            h = self.matryoshka_projections[i](x[..., :dim])
 
             # Pass through MLP
             h = self.mlps[i](h)

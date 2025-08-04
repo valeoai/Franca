@@ -9,12 +9,6 @@ class RASAHead(nn.Module):
         super(RASAHead, self).__init__()
         if pos_out_dim not in [1, 2]:
             raise ValueError("pos_out_dim must be either 1 or 2")
-        # if pos_out_dim == 1:
-        #     self.decompose_pos = RASAHead.decompose_pos_1D
-        # elif pos_out_dim == 2:
-        #     self.decompose_pos = RASAHead.decompose_pos_2D
-        # else:
-        #     raise NotImplementedError(f"Positional information for {self.pos_out_dim} dimensions is not implemented")
         self.pos_out_dim = pos_out_dim
         # Number of positional layers that are defined except the prediction layer
         self.n_pos_layers = n_pos_layers
@@ -22,12 +16,13 @@ class RASAHead(nn.Module):
         # The input dimension of the head
         self.input_dim = input_dim
 
+        pos_out_act_layer = pos_out_act_layer.lower() if isinstance(pos_out_act_layer, str) else pos_out_act_layer
         # Configure the activation layer for the positional output
         if pos_out_act_layer == "sigmoid":
             pos_out_act_layer = nn.Sigmoid
         elif pos_out_act_layer == "tanh":
             pos_out_act_layer = nn.Tanh
-        elif pos_out_act_layer is None:
+        elif pos_out_act_layer is None or pos_out_act_layer == "identity":
             pos_out_act_layer = nn.Identity
         self.pos_out_act_layer = pos_out_act_layer()
 
