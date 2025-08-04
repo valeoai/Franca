@@ -3,11 +3,11 @@
 # franca_vitb14_In21K.pth, i.e., franca_{compact_arch_name}{patch_size}_{pretraining_dataset}.pth
 # dataset names are In21K or Laion600M.
 # you can check it out in franca/hub/backbones.py
-ALL_FINAL_WEIGHTS_DIR="~/iveco/shashank/logfiles/franca_release_weights"
+ALL_FINAL_WEIGHTS_DIR="$HOME/iveco/shashank/logfiles/franca_release_weights"
 
 # In the following directory, we should store all ViT-G checkpoints.
 # They should have the same following format as described above.
-GIGA_WEIGHTS_DIR="~/iveco/shashank/logfiles/giga_models"
+GIGA_WEIGHTS_DIR="$HOME/iveco/shashank/logfiles/giga_models"
 
 _GITHUB_MAX_SIZE="1900MB"
 
