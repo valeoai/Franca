@@ -76,6 +76,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <th>HummingBird<br />VOC</th>
       <th>Linear Segm.<br />ADE20K</th>
       <th>download</th>
+      <th>download</th>
     </tr>
   </thead>
   <tbody>
@@ -156,8 +157,8 @@ franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', use_rasa_head=
 franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', use_rasa_head=True)
 
 # Franca -- Laion600M
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION600m', use_rasa_head=True)
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION600m', use_rasa_head=True)
+franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION', use_rasa_head=True)
+franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION', use_rasa_head=True)
 
 # Dinov2 baseline -- In21k
 franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=True)
