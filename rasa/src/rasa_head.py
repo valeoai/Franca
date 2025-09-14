@@ -9,7 +9,7 @@ class RASAHead(nn.Module):
         super(RASAHead, self).__init__()
 
         # Assertions for input validation
-        assert n_pos_layers > 0, "n_pos_layers must be greater than 0"
+        assert n_pos_layers >= 0, "n_pos_layers must be greater or equal to 0"
         assert pos_out_act_layer in [
             "sigmoid",
             "tanh",
