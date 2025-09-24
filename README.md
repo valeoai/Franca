@@ -55,7 +55,7 @@ Franca is released as a research project to promote transparency, reproducibilit
 
 ---
 ## News
-
+- **[October 2025]** Coming Soon: New High-resolution finetuned models, DataMix code
 - **[July 2025]** Official code and pretrained models released! 🔥
 
 ---
