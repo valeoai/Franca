@@ -89,8 +89,56 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">82.0%</td>
       <td align="center">75.7%</td>
       <td align="center">39.1%</td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21k.pth">backbone only</a></td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21k_rasa.pth">RASA head</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21K.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitb14_In21K_rasa.pth">RASA head</a></td>
+    </tr>
+    <tr>
+      <td>ViT-B/14</td>
+      <td align="left">86 M</td>
+      <td align="left">ImageNet, latest</td>
+      <td align="center">518</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitb14_In21K_518.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitb14_In21K_518_rasa.pth">RASA head</a></td>
+    </tr>
+    <tr>
+      <td>DINOv2 ViT-B/14</td>
+      <td align="left">86 M</td>
+      <td align="left">In21K HRFT</td>
+      <td align="center">518</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitb14_Dinov2_In21K_518.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitb14_Dinov2_In21K_518_rasa.pth">RASA head</a></td>
+    </tr>
+    <tr>
+      <td>DINOv2 ViT-L/14</td>
+      <td align="left">300 M</td>
+      <td align="left">In21K HRFT</td>
+      <td align="center">518</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitl14_Dinov2_In21K_518.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitl14_Dinov2_In21K_518_rasa.pth">RASA head</a></td>
+    </tr>
+    <tr>
+      <td>ViT-L/14</td>
+      <td align="left">300 M</td>
+      <td align="left">LAION-600M</td>
+      <td align="center">518</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td align="center">N/A</td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitl14_Laion_518.pth">backbone only</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.1.0/franca_vitl14_Laion_518_rasa.pth">RASA head</a></td>
     </tr>
     <tr>
       <td>ViT-L/14</td>
@@ -101,14 +149,14 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">84.5%</td>
       <td align="center">73.5%</td>
       <td align="center">41.3%</td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_In21k.pth">backbone only</a></td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_In21k_rasa.pth">RASA head</a></td>
+      <td>not published</td>
+      <td>not published</td>
     </tr>
     <tr>
       <td>ViT-L/14</td>
       <td align="left">300 M</td>
       <td align="left">LAION-600M</td>
-      <td align="center">224</td>
+      <td align="center">518</td>
       <td align="center">81.9%</td>
       <td align="center">84.4%</td>
       <td align="center">73.5%</td>
@@ -125,8 +173,8 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">85.9%</td>
       <td align="center">71.7%</td>
       <td align="center">40.2%</td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21k_chunked.tar.gz.part_ac">part 3</a></td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_In21K_rasa.pth">RASA head</a></td>
+      <td>not published</td>
+      <td>not published</td>
     </tr>
     <tr>
       <td>ViT-g/14</td>
@@ -138,7 +186,7 @@ Franca is released as a research project to promote transparency, reproducibilit
       <td align="center">76.7%</td>
       <td align="center">42.4%</td>
       <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_aa">part 1</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ab">part 2</a>, <a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_chunked.tar.gz.part_ac">part 3</a></td>
-      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitl14_Laion600M_rasa.pth">RASA head</a></td>
+      <td><a href="https://github.com/valeoai/Franca/releases/download/v1.0.0/franca_vitg14_Laion600M_rasa.pth">RASA head</a></td>
     </tr>
   </tbody>
 </table>
@@ -153,8 +201,6 @@ import torch
 
 # Franca -- In21k
 franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', use_rasa_head=True)
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', use_rasa_head=True)
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', use_rasa_head=True)
 
 # Franca -- Laion600M
 franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION', use_rasa_head=True)
@@ -163,7 +209,21 @@ franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION
 # Dinov2 baseline -- In21k
 franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=False)
 franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='DINOV2_IN21K', use_rasa_head=False)
+
+# 518px checkpoints with RASA
+franca_vitb14_518 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='IN21K_518', use_rasa_head=True)
+dinov2_vitb14_518 = torch.hub.load(
+    'valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K_518', use_rasa_head=True
+)
+dinov2_vitl14_518 = torch.hub.load(
+    'valeoai/Franca', 'franca_vitl14', weights='DINOV2_IN21K_518', use_rasa_head=True
+)
+franca_vitl14_518 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION_518', use_rasa_head=True)
 ```
+
+The 518px Franca-L checkpoint uses the same LAION-600M dataset as the other LAION models. Legacy RASA checkpoints
+with eight preprocessing projections and current checkpoints with nine are both detected and loaded automatically.
+The three RASA files extracted from HRFT teacher checkpoints have the current 10-tensor structure.
 
 ## Installation
 
@@ -200,10 +260,6 @@ from franca.hub.backbones import _make_franca_model
 from rasa.src.rasa_head import RASAHead
 
 # --- Step 1: Choose model config ---
-arch_name = "vit_large"
-img_size = 224
-ckpt_path = "<your path>/franca_vitl14_In21K.pth"
-rasa_ckpt_path = "<your path>/franca_vitl14_In21K_rasa.pth"
 
 # Define image transformation
 transform = transforms.Compose([
@@ -214,15 +270,7 @@ transform = transforms.Compose([
 ])
 
 # --- Step 2: Build and load model ---
-model = _make_franca_model(
-    arch_name=arch_name,
-    img_size=img_size,
-    pretrained=True,
-    local_state_dict=ckpt_path,
-    RASA_local_state_dict=rasa_ckpt_path,
-    use_rasa_head=True
-)
-
+model = torch.hub.load('valeoai/Franca', 'franca_vitb14', use_rasa_head=True)
 
 # --- Step 3: Forward pass ---
 model.cuda()
