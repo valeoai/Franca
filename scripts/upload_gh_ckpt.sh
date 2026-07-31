@@ -59,7 +59,7 @@ if [[ -n "$PUBLIC_CODE_REF" && "$release_target" != "$PUBLIC_CODE_REF" ]]; then
 fi
 
 if ! gh api "repos/$REPOSITORY/contents/franca/hub/backbones.py?ref=$release_target" --jq '.content' \
-  | base64 --decode | grep --quiet 'IN21K_518'; then
+  | base64 --decode | grep 'IN21K_518' >/dev/null; then
   echo "Release target $release_target does not contain the v1.1.0 loader changes; publish the code first" >&2
   exit 1
 fi
