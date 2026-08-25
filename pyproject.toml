@@ -79,7 +79,7 @@ path = "franca/__init__.py"
 
 [tool.black]
 line-length = 127
-target-version = ['py39']
+target-version = ['py310']
 include = '\.py?$'
 
 [tool.isort]

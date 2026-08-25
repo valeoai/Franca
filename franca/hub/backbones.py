@@ -145,7 +145,7 @@ def _make_franca_model(
 
     weights = _normalize_weights(weights)
     weight_spec = _WEIGHT_SPECS.get((arch_name, weights))
-    if pretrained and weight_spec is None:
+    if pretrained and local_state_dict is None and weight_spec is None:
         _get_weight_spec(arch_name, weights)
     if img_size is None:
         img_size = weight_spec.img_size if weight_spec is not None else 224
