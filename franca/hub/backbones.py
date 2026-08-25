@@ -234,17 +234,17 @@ def franca_vitb14(*, pretrained: bool = True, weights: Union[Weights, str] = Wei
     return _make_franca_model(arch_name="vit_base", pretrained=pretrained, weights=weights, img_size=img_size, **kwargs)
 
 
-def franca_vitl14(*, pretrained: bool = True, weights: Union[Weights, str] = Weights.IN21K, **kwargs) -> nn.Module:
+def franca_vitl14(*, pretrained: bool = True, weights: Union[Weights, str] = Weights.LAION, **kwargs) -> nn.Module:
     """
-    Franca ViT-L/14 model (optionally) pretrained on either the In21K or Laion600M dataset.
+    Franca ViT-L/14 model (optionally) pretrained on the LAION-600M dataset by default.
     """
     img_size = kwargs.pop("img_size", None)
     return _make_franca_model(arch_name="vit_large", pretrained=pretrained, weights=weights, img_size=img_size, **kwargs)
 
 
-def franca_vitg14(*, pretrained: bool = True, weights: Union[Weights, str] = Weights.IN21K, **kwargs) -> nn.Module:
+def franca_vitg14(*, pretrained: bool = True, weights: Union[Weights, str] = Weights.LAION, **kwargs) -> nn.Module:
     """
-    Franca ViT-g/14 model (optionally) pretrained on either the In21K or Laion600M dataset.
+    Franca ViT-g/14 model (optionally) pretrained on the LAION-600M dataset by default.
     """
     img_size = kwargs.pop("img_size", None)
     return _make_franca_model(arch_name="vit_giant2", weights=weights, pretrained=pretrained, img_size=img_size, **kwargs)
