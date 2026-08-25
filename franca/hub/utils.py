@@ -60,12 +60,8 @@ def load_state_dict_from_url(
     if model_dir is None:
         hub_dir = get_dir()
         model_dir = os.path.join(hub_dir, "checkpoints")
-        model_parts_dir = os.path.join(hub_dir, "checkpoints", "parts")
-    else:
-        model_parts_dir = os.path.join(model_dir, "parts")
 
     os.makedirs(model_dir, exist_ok=True)
-    os.makedirs(model_parts_dir, exist_ok=True)
 
     final_url = url[0].split("_chunked.tar.gz")[0] + ".pth"
     parts = urlparse(final_url)
@@ -74,13 +70,14 @@ def load_state_dict_from_url(
         filename = file_name
     cached_file = os.path.join(model_dir, filename)
     if not os.path.exists(cached_file):
-        for _url in url:
-            sys.stdout.write(f'Downloading: "{_url}" to {cached_file} parts\n')
-            _parts = urlparse(_url)
-            _filename = os.path.basename(_parts.path)
-            _cached_file = os.path.join(model_parts_dir, _filename)
-            download_url_to_file(_url, _cached_file, None, progress=progress)
+        with tempfile.TemporaryDirectory(dir=model_dir, prefix=f".{filename}.parts-") as model_parts_dir:
+            for _url in url:
+                sys.stdout.write(f'Downloading: "{_url}" to {cached_file} parts\n')
+                _parts = urlparse(_url)
+                _filename = os.path.basename(_parts.path)
+                _cached_file = os.path.join(model_parts_dir, _filename)
+                download_url_to_file(_url, _cached_file, None, progress=progress)
 
-        extract_tar_file(model_parts_dir, model_dir)
+            extract_tar_file(model_parts_dir, model_dir)
 
     return torch.load(cached_file, map_location=map_location, weights_only=weights_only)
