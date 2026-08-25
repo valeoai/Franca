@@ -2,7 +2,7 @@ import os
 import tempfile
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Mapping, Optional, Union
 
 import torch
 import torch.nn as nn
@@ -10,7 +10,7 @@ import torch.nn as nn
 from franca.hub.utils import _TEMPDIR, extract_tar_file, load_state_dict_from_url
 from rasa.src.rasa_head import RASAHead
 
-_FRANCA_BASE_URL = "https://github.com/valeoai/Franca/releases/download/v1.0.0"
+_FRANCA_RELEASE_URL = "https://github.com/valeoai/Franca/releases/download/{release}"
 _FRANCA_ViT_G_CHUNKS = [
     "chunked.tar.gz.part_aa",
     "chunked.tar.gz.part_ab",
@@ -46,14 +46,95 @@ class FrancaConfig:
 
 class Weights(Enum):
     IN21K = "In21K"
+    IN21K_224 = "In21K_224"
     LAION = "Laion600M"
+    LAION_224 = "Laion600M_224"
     DINOV2_IN21K = "Dinov2_In21K"
+    DINOV2_IN21K_518 = "Dinov2_In21K_518"
+    LAION_518 = "Laion_518"
+
+
+@dataclass(frozen=True)
+class WeightSpec:
+    img_size: int
+    release: str
+    rasa_available: bool = True
+
+
+_WEIGHT_SPECS = {
+    ("vit_base", Weights.IN21K): WeightSpec(img_size=518, release="v1.0.0"),
+    ("vit_base", Weights.IN21K_224): WeightSpec(img_size=224, release="v1.1.0", rasa_available=False),
+    ("vit_base", Weights.DINOV2_IN21K): WeightSpec(img_size=224, release="v1.1.0", rasa_available=False),
+    ("vit_base", Weights.DINOV2_IN21K_518): WeightSpec(img_size=518, release="v1.1.0"),
+    ("vit_large", Weights.LAION): WeightSpec(img_size=518, release="v1.0.0"),
+    ("vit_large", Weights.LAION_224): WeightSpec(img_size=224, release="v1.1.0", rasa_available=False),
+    ("vit_large", Weights.DINOV2_IN21K): WeightSpec(img_size=224, release="v1.1.0", rasa_available=False),
+    ("vit_large", Weights.DINOV2_IN21K_518): WeightSpec(img_size=518, release="v1.1.0"),
+    ("vit_large", Weights.LAION_518): WeightSpec(img_size=518, release="v1.1.0"),
+    ("vit_giant2", Weights.LAION): WeightSpec(img_size=224, release="v1.0.0"),
+}
+
+
+def _normalize_weights(weights: Union[Weights, str]) -> Weights:
+    if isinstance(weights, Weights):
+        return weights
+    try:
+        return Weights[weights]
+    except KeyError as error:
+        supported = ", ".join(weight.name for weight in Weights)
+        raise ValueError(f"Unsupported weights: {weights}. Supported values: {supported}") from error
+
+
+def _get_weight_spec(arch_name: str, weights: Weights) -> WeightSpec:
+    try:
+        return _WEIGHT_SPECS[(arch_name, weights)]
+    except KeyError as error:
+        supported = ", ".join(weight.name for arch, weight in _WEIGHT_SPECS if arch == arch_name)
+        raise ValueError(f"Weights {weights.name} are not available for {arch_name}. Supported values: {supported}") from error
+
+
+def _make_checkpoint_url(arch_name: str, patch_size: int, weights: Weights, rasa: bool = False) -> str:
+    spec = _get_weight_spec(arch_name, weights)
+    base_url = _FRANCA_RELEASE_URL.format(release=spec.release)
+    if rasa:
+        model_name = _make_rasa_model_name(arch_name, patch_size, weights.value)
+    else:
+        model_name = _make_franca_model_name(arch_name, patch_size, weights.value)
+    return f"{base_url}/{model_name}.pth"
+
+
+def _normalize_rasa_state_dict(state_dict: Mapping[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+    normalized = {}
+    for key, value in state_dict.items():
+        if key.startswith("module."):
+            key = key[len("module.") :]
+        if key.startswith("rasa_head."):
+            key = key[len("rasa_head.") :]
+        normalized[key] = value
+    return normalized
+
+
+def _make_rasa_head(input_dim: int, state_dict: Mapping[str, torch.Tensor]) -> RASAHead:
+    state_dict = _normalize_rasa_state_dict(state_dict)
+    layer_indices = sorted(
+        int(key.split(".")[1])
+        for key in state_dict
+        if key.startswith("pre_pos_layers.") and key.endswith(".weight")
+    )
+    if layer_indices != list(range(len(layer_indices))):
+        raise ValueError(f"RASA preprocessing layers must be contiguous from zero; found {layer_indices}")
+    if "pos_pred.weight" not in state_dict:
+        raise ValueError("RASA state dict is missing pos_pred.weight")
+
+    rasa_head = RASAHead(input_dim=input_dim, n_pos_layers=len(layer_indices), pos_out_dim=2)
+    rasa_head.load_state_dict(state_dict, strict=True)
+    return rasa_head
 
 
 def _make_franca_model(
     *,
     arch_name: str = "vit_large",
-    img_size: int = 224,
+    img_size: Optional[int] = None,
     pretrained: bool = True,
     weights: Union[Weights, str] = Weights.IN21K,
     local_state_dict: Optional[str | list[str]] = None,
@@ -62,14 +143,13 @@ def _make_franca_model(
 ) -> nn.Module:
     from ..models import build_model
 
-    if isinstance(weights, str):
-        try:
-            weights = Weights[weights]
-        except KeyError:
-            raise AssertionError(f"Unsupported weights: {weights}")
+    weights = _normalize_weights(weights)
+    weight_spec = _get_weight_spec(arch_name, weights)
+    if img_size is None:
+        img_size = weight_spec.img_size
 
     # Extract use_rasa_head from kwargs before passing to FrancaConfig
-    use_rasa_head = kwargs.pop('use_rasa_head', False)
+    use_rasa_head = kwargs.pop("use_rasa_head", False)
 
     vit_config = FrancaConfig(arch=arch_name, use_rasa_head=use_rasa_head, **kwargs)
     model, _ = build_model(vit_config, only_teacher=True, img_size=img_size)
@@ -77,11 +157,6 @@ def _make_franca_model(
     model_full_name = _make_franca_model_name(arch_name, vit_config.patch_size, weights.value)
 
     if pretrained:
-        if weights == Weights.LAION and arch_name == "vit_base":
-            raise ValueError(
-                "Franca ViT-B/14 model is not available with LAION weights. "
-                "Please use IN21K weights or set `pretrained=False`."
-            )
         if local_state_dict is not None:
             if os.path.isdir(local_state_dict):
                 with tempfile.TemporaryDirectory(dir=_TEMPDIR) as tmpdirname:
@@ -91,9 +166,10 @@ def _make_franca_model(
                 state_dict = torch.load(local_state_dict, map_location="cpu", weights_only=True)
         else:
             if arch_name == "vit_giant2":
-                url = [_FRANCA_BASE_URL + f"/{model_full_name}_{chunk}" for chunk in _FRANCA_ViT_G_CHUNKS]
+                base_url = _FRANCA_RELEASE_URL.format(release=weight_spec.release)
+                url = [base_url + f"/{model_full_name}_{chunk}" for chunk in _FRANCA_ViT_G_CHUNKS]
             else:
-                url = _FRANCA_BASE_URL + f"/{model_full_name}.pth"
+                url = _make_checkpoint_url(arch_name, vit_config.patch_size, weights)
             state_dict = load_state_dict_from_url(url, map_location="cpu", weights_only=True)
 
         state_dict: dict[str, Any] = state_dict["teacher"]
@@ -131,24 +207,15 @@ def _make_franca_model(
     assert len(model.blocks) == model.n_blocks, f"Expected {model.n_blocks} blocks, but got {len(model.blocks)} blocks."
 
     if vit_config.use_rasa_head:
-        rasa_head = RASAHead(input_dim=model.embed_dim, n_pos_layers=9, pos_out_dim=2)
-
+        if RASA_local_state_dict is None and not weight_spec.rasa_available:
+            raise ValueError(f"RASA weights are not published for {arch_name} with {weights.name} weights.")
         if RASA_local_state_dict is not None:
             rasa_state_dict = torch.load(RASA_local_state_dict, map_location="cpu", weights_only=True)
         else:
-            rasa_model_name = _make_rasa_model_name(arch_name, vit_config.patch_size, weights.value)
-            rasa_url = _FRANCA_BASE_URL + f"/{rasa_model_name}.pth"
+            rasa_url = _make_checkpoint_url(arch_name, vit_config.patch_size, weights, rasa=True)
             rasa_state_dict = load_state_dict_from_url(rasa_url, map_location="cpu", weights_only=True)
 
-        # Load the RASA head state dict
-        msg = rasa_head.load_state_dict(rasa_state_dict)
-        if len(msg.missing_keys) != 0:
-            raise ValueError(
-                f"Missing keys in the RASA head state_dict: {msg.missing_keys}. "
-                "Ensure that the RASA head architecture matches the state_dict."
-            )
-
-        model.rasa_head = rasa_head
+        model.rasa_head = _make_rasa_head(model.embed_dim, rasa_state_dict)
 
     if not vit_config.use_rasa_head and hasattr(model, "rasa_head"):
         del model.rasa_head
@@ -160,10 +227,7 @@ def franca_vitb14(*, pretrained: bool = True, weights: Union[Weights, str] = Wei
     """
     Franca ViT-B/14 model (optionally) pretrained on the In21K dataset.
     """
-    if weights == Weights.DINOV2_IN21K or weights == "DINOV2_IN21K":
-        img_size = kwargs.pop("img_size", 224)
-    else:
-        img_size = kwargs.pop("img_size", 518)
+    img_size = kwargs.pop("img_size", None)
     return _make_franca_model(arch_name="vit_base", pretrained=pretrained, weights=weights, img_size=img_size, **kwargs)
 
 
@@ -171,11 +235,13 @@ def franca_vitl14(*, pretrained: bool = True, weights: Union[Weights, str] = Wei
     """
     Franca ViT-L/14 model (optionally) pretrained on either the In21K or Laion600M dataset.
     """
-    return _make_franca_model(arch_name="vit_large", pretrained=pretrained, weights=weights, **kwargs)
+    img_size = kwargs.pop("img_size", None)
+    return _make_franca_model(arch_name="vit_large", pretrained=pretrained, weights=weights, img_size=img_size, **kwargs)
 
 
 def franca_vitg14(*, pretrained: bool = True, weights: Union[Weights, str] = Weights.IN21K, **kwargs) -> nn.Module:
     """
     Franca ViT-g/14 model (optionally) pretrained on either the In21K or Laion600M dataset.
     """
-    return _make_franca_model(arch_name="vit_giant2", weights=weights, pretrained=pretrained, **kwargs)
+    img_size = kwargs.pop("img_size", None)
+    return _make_franca_model(arch_name="vit_giant2", weights=weights, pretrained=pretrained, img_size=img_size, **kwargs)
