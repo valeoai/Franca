@@ -144,9 +144,11 @@ def _make_franca_model(
     from ..models import build_model
 
     weights = _normalize_weights(weights)
-    weight_spec = _get_weight_spec(arch_name, weights)
+    weight_spec = _WEIGHT_SPECS.get((arch_name, weights))
+    if pretrained and weight_spec is None:
+        _get_weight_spec(arch_name, weights)
     if img_size is None:
-        img_size = weight_spec.img_size
+        img_size = weight_spec.img_size if weight_spec is not None else 224
 
     # Extract use_rasa_head from kwargs before passing to FrancaConfig
     use_rasa_head = kwargs.pop("use_rasa_head", False)
@@ -165,6 +167,7 @@ def _make_franca_model(
             else:
                 state_dict = torch.load(local_state_dict, map_location="cpu", weights_only=True)
         else:
+            assert weight_spec is not None
             if arch_name == "vit_giant2":
                 base_url = _FRANCA_RELEASE_URL.format(release=weight_spec.release)
                 url = [base_url + f"/{model_full_name}_{chunk}" for chunk in _FRANCA_ViT_G_CHUNKS]
@@ -207,7 +210,7 @@ def _make_franca_model(
     assert len(model.blocks) == model.n_blocks, f"Expected {model.n_blocks} blocks, but got {len(model.blocks)} blocks."
 
     if vit_config.use_rasa_head:
-        if RASA_local_state_dict is None and not weight_spec.rasa_available:
+        if RASA_local_state_dict is None and (weight_spec is None or not weight_spec.rasa_available):
             raise ValueError(f"RASA weights are not published for {arch_name} with {weights.name} weights.")
         if RASA_local_state_dict is not None:
             rasa_state_dict = torch.load(RASA_local_state_dict, map_location="cpu", weights_only=True)
