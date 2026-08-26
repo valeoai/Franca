@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "franca"
-version = "1.0.0"
+version = "1.1.0"
 description = "Franca: Nested Matryoshka Clustering for Scalable Visual Representation Learning (official repository)."
 readme = "README.md"
-requires-python = ">=3.8.0"
+requires-python = ">=3.10"
 authors = [
     { name = "Shashanka Venkataramanan", email = "shashanka.venkataramanan@valeo.com" },
     { name = "Valentinos Pariza", email = "valentinospariza@gmail.com" },
@@ -79,7 +79,7 @@ path = "franca/__init__.py"
 
 [tool.black]
 line-length = 127
-target-version = ['py39']
+target-version = ['py310']
 include = '\.py?$'
 
 [tool.isort]

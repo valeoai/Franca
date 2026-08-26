@@ -3,10 +3,8 @@
 These are Vision Transformer models trained following the method described in the papers:
 "Franca: Nested Clustering with Matryoshka for Scalable Visual Representation Learning"
 
-We provide 7 models:
-- DINOv2-B and DINOv2-L reproduced on IN-21K. (without distillation)
-- Franca-B, Franca-L and Franca-G pretrained on IN-21K.
-- Franca-L and Franca-G pretrained on LAION-600M.
+We provide DINOv2-B/L baselines and Franca-B/L models before and after HRFT at 518px, plus the existing
+Franca-G model. Franca-B and the DINOv2 baselines use IN-21K; Franca-L and Franca-G use LAION-600M.
 
 ## Model Details
 The model takes an image as input and returns a class token and patch tokens
@@ -52,19 +50,28 @@ Use the code below to get started with the model.
 ```python
 import torch
 
-# Franca -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', use_rasa_head=True)
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', use_rasa_head=True)
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', use_rasa_head=True)
+repo = 'valeoai/Franca:v1.1.0'
 
-# Franca -- Laion600M
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='LAION600m', use_rasa_head=True)
-franca_vitg14 = torch.hub.load('valeoai/Franca', 'franca_vitg14', weights='LAION600m', use_rasa_head=True)
+# DINOv2 baselines -- IN-21K
+dinov2_vitb14 = torch.hub.load(repo, 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=False)
+dinov2_vitb14_518 = torch.hub.load(
+    repo, 'franca_vitb14', weights='DINOV2_IN21K_518', use_rasa_head=True
+)
+dinov2_vitl14 = torch.hub.load(repo, 'franca_vitl14', weights='DINOV2_IN21K', use_rasa_head=False)
+dinov2_vitl14_518 = torch.hub.load(
+    repo, 'franca_vitl14', weights='DINOV2_IN21K_518', use_rasa_head=True
+)
 
-# Dinov2 baseline -- In21k
-franca_vitb14 = torch.hub.load('valeoai/Franca', 'franca_vitb14', weights='DINOV2_IN21K', use_rasa_head=False)
-franca_vitl14 = torch.hub.load('valeoai/Franca', 'franca_vitl14', weights='DINOV2_IN21K', use_rasa_head=False)
+# Franca
+franca_vitb14 = torch.hub.load(repo, 'franca_vitb14', weights='IN21K_224', use_rasa_head=False)
+franca_vitb14_518 = torch.hub.load(repo, 'franca_vitb14', weights='IN21K', use_rasa_head=True)
+franca_vitl14 = torch.hub.load(repo, 'franca_vitl14', weights='LAION_224', use_rasa_head=False)
+franca_vitl14_518 = torch.hub.load(repo, 'franca_vitl14', weights='LAION_518', use_rasa_head=True)
+franca_vitg14 = torch.hub.load(repo, 'franca_vitg14', weights='LAION', use_rasa_head=True)
 ```
+
+The RASA heads extracted from the three new HRFT teacher checkpoints have the expected 10-tensor structure. The
+loader also supports legacy 9-tensor RASA checkpoints by inferring the number of preprocessing projections.
 
 
 ## Loading intermediate checkpoints
@@ -82,14 +89,14 @@ from rasa.src.rasa_head import RASAHead
 
 # --- Step 1: Choose model config ---
 arch_name = "vit_large"
-img_size = 224
-ckpt_path = "<your path>/franca_vitl14_In21K.pth"
-rasa_ckpt_path = "<your path>/franca_vitl14_In21K_rasa.pth"
+img_size = 518
+ckpt_path = "<your path>/franca_vitl14_Laion_518.pth"
+rasa_ckpt_path = "<your path>/franca_vitl14_Laion_518_rasa.pth"
 
 # Define image transformation
 transform = transforms.Compose([
-    transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
-    transforms.CenterCrop(224),
+    transforms.Resize(518, interpolation=transforms.InterpolationMode.BICUBIC),
+    transforms.CenterCrop(518),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
 ])
@@ -98,6 +105,7 @@ transform = transforms.Compose([
 model = _make_franca_model(
     arch_name=arch_name,
     img_size=img_size,
+    weights="LAION_518",
     pretrained=True,
     local_state_dict=ckpt_path,
     RASA_local_state_dict=rasa_ckpt_path,
